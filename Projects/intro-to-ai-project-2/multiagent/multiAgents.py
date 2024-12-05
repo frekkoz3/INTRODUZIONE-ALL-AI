@@ -183,32 +183,29 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         def minimimax(gameState, agentindex, depth):
+            # case base 
             if depth == 0 or gameState.isWin() or gameState.isLose():
                 return [self.evaluationFunction(gameState)]
+            # general params
+            next_agent = (agentindex + 1)%gameState.getNumAgents()
+            possible_action = gameState.getLegalActions(agentindex)
+            action_taken = ''
+            rew = float('inf')
+            # ghosts
             if agentindex > 0:
-                rew = float('inf')
-                action_taken = ''
-                possible_action = gameState.getLegalActions(agentindex)
-                next_agent = 0 if agentindex == (gameState.getNumAgents() - 1) else agentindex + 1
                 for act in possible_action:
                     t = rew
                     rew = min(rew, minimimax(gameState.generateSuccessor(agentindex, act), next_agent, depth-1)[0])
-                    if t != rew:
-                        action_taken = act
+                    action_taken = action_taken if t == rew else act
+            # pacman
             else:
-                rew = -float('inf')
-                action_taken = ''
-                possible_action = gameState.getLegalActions(agentindex)
+                rew = -rew
                 for act in possible_action:
                     t = rew
-                    rew = max(rew, minimimax(gameState.generateSuccessor(agentindex, act), 1, depth-1)[0])
-                    if t != rew:
-                        action_taken = act
-
+                    rew = max(rew, minimimax(gameState.generateSuccessor(agentindex, act), next_agent, depth-1)[0])
+                    action_taken = action_taken if t == rew else act
             return rew, action_taken
-        
         rew = minimimax(gameState, 0, self.depth * gameState.getNumAgents())
-        
         return rew[1]
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -221,7 +218,42 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def minimimax_alphabetapruning(gameState, agentindex, depth, alpha, beta):
+            # case base 
+            if depth == 0 or gameState.isWin() or gameState.isLose():
+                return [self.evaluationFunction(gameState)]
+            # general params
+            next_agent = (agentindex + 1)%gameState.getNumAgents()
+            possible_action = gameState.getLegalActions(agentindex)
+            action_taken = ''
+            rew = float('inf')
+            # ghosts
+            if agentindex > 0:
+                for act in possible_action:
+                    t = rew
+                    rew = min(rew, minimimax_alphabetapruning(gameState.generateSuccessor(agentindex, act), next_agent, depth-1, alpha, beta)[0])
+                    action_taken = action_taken if t == rew else act
+                    if beta < rew:
+                        beta = rew
+                    if rew > beta:
+                        return rew, action_taken 
+            # pacman
+            else:
+                rew = -rew
+                for act in possible_action:
+                    t = rew
+                    rew = max(rew, minimimax_alphabetapruning(gameState.generateSuccessor(agentindex, act), next_agent, depth-1, alpha, beta)[0])
+                    action_taken = action_taken if t == rew else act
+                    if alpha > rew:
+                        alpha = rew
+                    if rew < alpha:
+                        return rew, action_taken
+                    
+            return rew, action_taken
+        rew = minimimax_alphabetapruning(gameState, 0, self.depth * gameState.getNumAgents(), alpha=float('inf'), beta=-float('inf'))
+        return rew[1]
+        
+        
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
