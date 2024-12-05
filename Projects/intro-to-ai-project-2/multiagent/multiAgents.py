@@ -182,29 +182,34 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        def maximizer(gameState, agentIndex, depth):
-          if depth == 0:
-            return self.evaluationFunction(gameState), None
-          possibleAction = gameState.getLegalActions(agentIndex)
-          print(f"{agentIndex} : {possibleAction}")
-          return max([(minimizer(gameState.generateSuccessor(agentIndex, action), agentIndex+1, depth-1), action)for action in possibleAction])
+        def minimimax(gameState, agentindex, depth):
+            if depth == 0 or gameState.isWin() or gameState.isLose():
+                return [self.evaluationFunction(gameState)]
+            if agentindex > 0:
+                rew = float('inf')
+                action_taken = ''
+                possible_action = gameState.getLegalActions(agentindex)
+                next_agent = 0 if agentindex == (gameState.getNumAgents() - 1) else agentindex + 1
+                for act in possible_action:
+                    t = rew
+                    rew = min(rew, minimimax(gameState.generateSuccessor(agentindex, act), next_agent, depth-1)[0])
+                    if t != rew:
+                        action_taken = act
+            else:
+                rew = -float('inf')
+                action_taken = ''
+                possible_action = gameState.getLegalActions(agentindex)
+                for act in possible_action:
+                    t = rew
+                    rew = max(rew, minimimax(gameState.generateSuccessor(agentindex, act), 1, depth-1)[0])
+                    if t != rew:
+                        action_taken = act
+
+            return rew, action_taken
         
-        def minimizer(gameState, agentIndex, depth):
-          if depth == 0:
-            return self.evaluationFunction(gameState), None
-          possibleAction = gameState.getLegalActions(agentIndex)
-          if possibleAction == []:
-            return 0, None
-          print(f"{agentIndex} : {possibleAction}")
-          if agentIndex == (gameState.getNumAgents() - 1):
-            return min([(maximizer(gameState.generateSuccessor(agentIndex, action), 0, depth-1), action) for action in possibleAction])
-          return min([(minimizer(gameState.generateSuccessor(agentIndex, action), agentIndex+1, depth-1), action)for action in possibleAction])
-
-        possibleAction = gameState.getLegalActions(0)
-        print(f"Pacman : {possibleAction}")
-        act = max([(self.evaluationFunction(gameState.generateSuccessor(0, action)), action) for action in possibleAction])
-
-        return act[1]
+        rew = minimimax(gameState, 0, self.depth * gameState.getNumAgents())
+        
+        return rew[1]
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
