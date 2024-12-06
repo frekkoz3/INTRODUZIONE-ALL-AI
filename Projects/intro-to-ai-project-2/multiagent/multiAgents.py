@@ -238,12 +238,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     t = rew
                     rew = min(rew, minimimax_alphabetapruning(gameState.generateSuccessor(agentindex, act), next_agent, depth-1, alpha, beta)[0])
                     action_taken = action_taken if t == rew else act
-                    if alpha > rew:
-                        alpha = rew
-                    if beta < rew:
-                        beta = rew
+                    beta = min(beta, rew)
                     if rew < alpha:
-                        return rew, action_taken 
+                      return rew, action_taken
+
             # pacman
             else:
                 rew = -rew
@@ -251,15 +249,12 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     t = rew
                     rew = max(rew, minimimax_alphabetapruning(gameState.generateSuccessor(agentindex, act), next_agent, depth-1, alpha, beta)[0])
                     action_taken = action_taken if t == rew else act
-                    if beta < rew:
-                        beta = rew
-                    if alpha > rew:
-                        alpha = rew
+                    alpha = max(alpha, rew)
                     if rew > beta:
                         return rew, action_taken
                     
             return rew, action_taken
-        rew = minimimax_alphabetapruning(gameState, 0, self.depth * gameState.getNumAgents(), alpha=float('inf'), beta=-float('inf'))
+        rew = minimimax_alphabetapruning(gameState, 0, self.depth * gameState.getNumAgents(), alpha=-float('inf'), beta=float('inf'))
         return rew[1]
         
         
