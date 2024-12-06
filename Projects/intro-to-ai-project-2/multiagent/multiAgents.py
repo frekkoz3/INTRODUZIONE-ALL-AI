@@ -76,7 +76,7 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newGhostPositions = successorGameState.getGhostPositions()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-        newCapsulesPositions = successorGameState.getCapsules()
+        newCapsules = successorGameState.getCapsules()
         "*** YOUR CODE HERE ***"
 
         # BASE CASE 
@@ -103,6 +103,11 @@ class ReflexAgent(Agent):
         eval -= danger_ghosts * dg_weight
         eval += scared_ghosts_eatable * sge_weight
         eval += scared_ghosts_non_eatable * sgne_weight
+
+        # CAPSULESE
+
+        if len(actualCapsules) > len(newCapsules):
+            eval += float('inf')
 
         # FOOD
 
@@ -233,9 +238,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     t = rew
                     rew = min(rew, minimimax_alphabetapruning(gameState.generateSuccessor(agentindex, act), next_agent, depth-1, alpha, beta)[0])
                     action_taken = action_taken if t == rew else act
+                    if alpha > rew:
+                        alpha = rew
                     if beta < rew:
                         beta = rew
-                    if rew > beta:
+                    if rew < alpha:
                         return rew, action_taken 
             # pacman
             else:
@@ -244,9 +251,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     t = rew
                     rew = max(rew, minimimax_alphabetapruning(gameState.generateSuccessor(agentindex, act), next_agent, depth-1, alpha, beta)[0])
                     action_taken = action_taken if t == rew else act
+                    if beta < rew:
+                        beta = rew
                     if alpha > rew:
                         alpha = rew
-                    if rew < alpha:
+                    if rew > beta:
                         return rew, action_taken
                     
             return rew, action_taken
@@ -268,7 +277,31 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def expectimax(gameState, agentindex, depth):
+            # case base 
+            if depth == 0 or gameState.isWin() or gameState.isLose():
+                return [self.evaluationFunction(gameState)]
+            # general params
+            next_agent = (agentindex + 1)%gameState.getNumAgents()
+            possible_action = gameState.getLegalActions(agentindex)
+            action_taken = ''
+            # ghosts
+            if agentindex > 0:
+                rew = 0
+                for act in possible_action:
+                    t = rew
+                    rew += expectimax(gameState.generateSuccessor(agentindex, act), next_agent, depth-1)[0]
+                rew = rew / len(possible_action)
+            # pacman
+            else:
+                rew = -float('inf')
+                for act in possible_action:
+                    t = rew
+                    rew = max(rew, expectimax(gameState.generateSuccessor(agentindex, act), next_agent, depth-1)[0])
+                    action_taken = action_taken if t == rew else act
+            return rew, action_taken
+        rew = expectimax(gameState, 0, self.depth * gameState.getNumAgents())
+        return rew[1]
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -278,6 +311,23 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+    # Useful information you can extract from a GameState (pacman.py)
+    actualPos = currentGameState.getPacmanPosition()
+    actualFood = currentGameState.getFood()
+    actualCapsules = currentGameState.getCapsules()
+    possibleActions = currentGameState.getLegalActions(0)
+    # GHOSTS ESCAPE
+    # we define 3 differents safe zone:
+    # Zone A : high danger (radius = 1)
+    # Zone B : medium danger (radius = 3)
+    # Zone C : low danger (radius = 5)
+    # every ghosts in other zones are just not considered
+ 
+    # GHOSTS HUNTING
+    # we are attracted by capsules
+
+    # FOOD SEARCHING
+
     util.raiseNotDefined()
 
 # Abbreviation
