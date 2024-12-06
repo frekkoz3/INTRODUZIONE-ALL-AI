@@ -48,15 +48,13 @@ class ValueIterationAgent(ValueEstimationAgent):
         for i in range (self.iterations):
             k_value = util.Counter()
             for state in self.mdp.getStates():
-                batch = util.Counter()
+                qvalue = util.Counter()
                 for action in self.mdp.getPossibleActions(state):
                     successors = self.mdp.getTransitionStatesAndProbs(state, action)
                     for next_state, probability in successors:
-                        batch[action] += (probability * (self.mdp.getReward(state, action, next_state) + self.discount * self.values[next_state]))
-                if len(batch) == 0:
-                    k_value[state] = 0
-                else:
-                    k_value[state] = batch[batch.argMax()]
+                        qvalue[action] += (probability * (self.mdp.getReward(state, action, next_state) + self.discount * self.values[next_state]))
+                if len(qvalue) > 0:
+                    k_value[state] = qvalue[qvalue.argMax()]
             self.values = k_value.copy()
 
     def getValue(self, state):
@@ -91,10 +89,10 @@ class ValueIterationAgent(ValueEstimationAgent):
             return None
         if len(self.mdp.getPossibleActions(state)) == 0:
             return None
-        batch = util.Counter()
+        qvalue = util.Counter()
         for action in self.mdp.getPossibleActions(state):
-            batch[action] = self.computeQValueFromValues(state, action)
-        return batch.argMax()
+            qvalue[action] = self.computeQValueFromValues(state, action)
+        return qvalue.argMax()
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
