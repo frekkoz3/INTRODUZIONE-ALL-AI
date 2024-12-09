@@ -307,23 +307,25 @@ def betterEvaluationFunction(currentGameState):
     """
     "*** YOUR CODE HERE ***"
     # Useful information you can extract from a GameState (pacman.py)
-    actualPos = currentGameState.getPacmanPosition()
+    pacman = currentGameState.getPacmanPosition()
     actualFood = currentGameState.getFood()
     actualCapsules = currentGameState.getCapsules()
-    possibleActions = currentGameState.getLegalActions(0)
-    # GHOSTS ESCAPE
-    # we define 3 differents safe zone:
-    # Zone A : high danger (radius = 1)
-    # Zone B : medium danger (radius = 3)
-    # Zone C : low danger (radius = 5)
-    # every ghosts in other zones are just not considered
- 
-    # GHOSTS HUNTING
-    # we are attracted by capsules
+    ghostsPositions = currentGameState.getGhostPositions()
+    ghostsStates = currentGameState.getGhostStates()
+    scaredTimes = [ghostState.scaredTimer for ghostState in ghostsStates]
 
-    # FOOD SEARCHING
+    # BASE CASE
 
-    util.raiseNotDefined()
+    if currentGameState.isWin():
+      return float('inf')
+    if currentGameState.isLose():
+      return -float('inf')
+
+    eval = currentGameState.getScore() + \
+            (10/min([util.manhattanDistance(pos, pacman) for pos in actualFood.asList()])) - \
+            (5/min([util.manhattanDistance(g.getPosition(), pacman) if g.scaredTimer == 0 else float('inf') for g in ghostsStates]))
+
+    return eval
 
 # Abbreviation
 better = betterEvaluationFunction
