@@ -312,7 +312,7 @@ def betterEvaluationFunction(currentGameState):
     actualCapsules = currentGameState.getCapsules()
     possibleActions = currentGameState.getLegalActions(0)
     # GHOSTS ESCAPE
-    # we define 3 differents safe zone:
+    # we define 3 differents danger zone:
     # Zone A : high danger (radius = 1)
     # Zone B : medium danger (radius = 3)
     # Zone C : low danger (radius = 5)
